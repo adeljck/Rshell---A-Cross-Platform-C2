@@ -26,6 +26,7 @@ func StartWebDelivery(c *gin.Context) {
 		Arch     string `json:"arch"`
 		Port     string `json:"port"`
 		Filename string `json:"filename"`
+		Pass     string `json:"pass"`
 	}
 	if err := c.ShouldBindJSON(&web); err != nil {
 		c.JSON(http.StatusOK, gin.H{"status": 400, "data": err})
@@ -72,6 +73,9 @@ func StartWebDelivery(c *gin.Context) {
 
 		modifiedData = bytes.ReplaceAll(binaryData, []byte(oldStr), []byte(newStr))
 	}
+	oldPass := "PASSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	newPass := padRight(web.Pass, len(oldPass))
+	modifiedData = bytes.ReplaceAll(modifiedData, []byte(oldPass), []byte(newPass))
 
 	// 替换文件中的特定字符串
 	//oldStr := "HOSTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 要替换的字符串
@@ -98,6 +102,7 @@ func StartWebDelivery(c *gin.Context) {
 		Status:         1,
 		FileName:       web.Filename,
 		ServerAddress:  "http://" + tmp[0] + ":" + web.Port + "/" + web.Filename,
+		Pass:           web.Pass,
 	})
 
 	server := &http.Server{
@@ -190,6 +195,9 @@ func OpenWebDelivery(c *gin.Context) {
 
 		modifiedData = bytes.ReplaceAll(binaryData, []byte(oldStr), []byte(newStr))
 	}
+	oldPass := "PASSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	newPass := padRight(webdelivery.Pass, len(oldPass))
+	modifiedData = bytes.ReplaceAll(modifiedData, []byte(oldPass), []byte(newPass))
 
 	// 替换文件中的特定字符串
 	//oldStr := "HOSTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // 要替换的字符串

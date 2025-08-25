@@ -73,6 +73,7 @@ type WebDelivery struct {
 	Status         int
 	ServerAddress  string
 	FileName       string
+	Pass           string
 }
 
 func ConnectDateBase() {
