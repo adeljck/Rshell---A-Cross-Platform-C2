@@ -76,39 +76,39 @@ Rshell是一款开源的golang编写的支持多平台的C2框架，旨在帮助
 
 新增windows的webdelivery后，可以生成stage分阶段的shellcode（体积较小，方便上线）：
 
-![image-20250902101115025](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902101115025.png)
+![image-20250902101115025](./assets/image-20250902101115025.png)
 
 ### 内存执行
 
 windows内存执行 支持Execute Assembly(.net程序内存执行)、Inline Bin(其他exe程序内存执行)、shellcode执行(执行shellcode,方便上线其他C2等)：
 
-![image-20250902103025182](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902103025182.png)
+![image-20250902103025182](./assets/image-20250902103025182.png)
 
 #### execute-assembly
 
 执行badpotato提权：
 
-![image-20250902103434699](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902103434699.png)
+![image-20250902103434699](./assets/image-20250902103434699.png)
 
-![image-20250902103211593](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902103211593.png)
+![image-20250902103211593](./assets/image-20250902103211593.png)
 
 #### inline-bin
 
 内存执行fscan：
 
-![image-20250902105312771](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902105312771.png)
+![image-20250902105312771](./assets/image-20250902105312771.png)
 
 mimikatz：
 
-![image-20250902110428454](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902110428454.png)
+![image-20250902110428454](./assets/image-20250902110428454.png)
 
 #### shellcode-inject
 
 上线msf：
 
-![image-20250902105352776](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902105352776.png)
+![image-20250902105352776](./assets/image-20250902105352776.png)
 
-![image-20250902105406612](/home/Rubby/Data/Pentest/Creating/Rshell/Update/Rshell---A-Cross-Platform-C2/assets/image-20250902105406612.png)
+![image-20250902105406612](./assets/image-20250902105406612.png)
 
 # 相关项目
 
