@@ -33,11 +33,6 @@ func main() {
 	distFS, _ := fs.Sub(embedFS, "dist")
 	staticFs, _ := fs.Sub(distFS, "static")
 	r := routers.NewRouter(embedFS, staticFs)
-	//t := r.Group("/tencent")
-	//{
-	//	t.GET("/mcp/pc/pcsearch", communication.Get)
-	//	t.POST("/sensearch/collection/item/check", communication.Post)
-	//}
 
 	logger.Info("Listening on port " + strconv.Itoa(*bindPort))
 	err := r.Run("0.0.0.0:" + strconv.Itoa(*bindPort))

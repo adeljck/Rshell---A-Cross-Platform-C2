@@ -105,5 +105,14 @@ func NewRouter(embedFS embed.FS, staticFs fs.FS) *gin.Engine {
 		settings.GET("/list", api.ListSettings)
 		settings.POST("/edit", api.EditSettings)
 	}
+
+	protected.POST("/bin/execute", api.ExecuteBin)
+
+	shellcode := protected.Group("/shellcode")
+	{
+		//shellcode.POST("/stageless", api.StageLessShellCodeGen)
+		shellcode.POST("/stage", api.StageShellCodeGen)
+
+	}
 	return r
 }
