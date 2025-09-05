@@ -54,12 +54,7 @@ func BasicAuthMiddleware() gin.HandlerFunc {
 // JWT 验证中间件
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.GetHeader("Authorization2") == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token required"})
-			c.Abort()
-			return
-		}
-		tokenString := c.GetHeader("Authorization2")[len("Bearer "):]
+		tokenString := c.GetHeader("Token")
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token required"})
 			c.Abort()
