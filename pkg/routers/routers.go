@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(embedFS embed.FS, staticFs fs.FS) *gin.Engine {
+func NewRouter(embedFS embed.FS) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	//r := gin.Default()
@@ -21,6 +21,8 @@ func NewRouter(embedFS embed.FS, staticFs fs.FS) *gin.Engine {
 	// 创建嵌入文件系统
 
 	// 提供静态文件，文件夹是 ./static
+	distFS, _ := fs.Sub(embedFS, "dist")
+	staticFs, _ := fs.Sub(distFS, "static")
 	r.StaticFS("/static/", http.FS(staticFs))
 
 	// 引入html

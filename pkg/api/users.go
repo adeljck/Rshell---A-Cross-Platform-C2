@@ -30,7 +30,6 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"code": 200, "data": gin.H{
 			"token":       token,
 			"permissions": 1, // 示例：1表示管理员权限
-			"refresh":     "mock-refresh-token",
 			"username":    loginData.Username,
 		}})
 	} else {
