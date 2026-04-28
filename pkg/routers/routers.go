@@ -3,10 +3,12 @@ package routers
 import (
 	"Rshell/pkg/api"
 	"Rshell/pkg/middlewares"
+	"Rshell/pkg/mcp"
 	"embed"
 	"html/template"
 	"io/fs"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +34,10 @@ func NewRouter(embedFS embed.FS, staticFs fs.FS) *gin.Engine {
 		// 处理未匹配的路由（前端页面）
 	}
 	r.NoRoute(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "route not found"})
+			return
+		}
 		// 手动执行 BasicAuth
 		middlewares.BasicAuthMiddleware()(c)
 		if c.IsAborted() {
@@ -132,10 +138,28 @@ func NewRouter(embedFS embed.FS, staticFs fs.FS) *gin.Engine {
 		shellcode.POST("/stage", api.StageShellCodeGen)
 	}
 
+	plugin := protected.Group("/plugin")
+	{
+		plugin.GET("/list", api.ListPlugins)
+		plugin.POST("/add", api.AddPlugin)
+		plugin.POST("/delete", api.DeletePlugin)
+		plugin.POST("/execute", api.ExecutePlugin)
+	}
+
 	// WebSocket认证token获取端点 - 需要JWT认证
 	protected.GET("/ws/auth/:uid", api.GetWebSocketAuthToken)
 
 	protected.POST("/forward-connection", api.ForwardConnect)
+
+	// MCP Endpoints (Protected by JWT AuthMiddleware)
+	mcpGroup := protected.Group("/mcp")
+	mcpGroup.Use(mcp.MCPEnabledMiddleware())
+	{
+		mcpGroup.GET("/sse", mcp.HandleSSE)
+		mcpGroup.POST("/message", mcp.HandleMessage)
+	}
+
+	mcp.GlobalEngine = r
 
 	return r
 }

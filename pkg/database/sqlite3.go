@@ -87,6 +87,15 @@ type Key struct {
 	PublicKey  string
 	PrivateKey string
 }
+type Plugin struct {
+	Id         int64 `xorm:"pk autoincr"`
+	Name       string
+	Os         string
+	Type       string
+	FileName   string
+	FilePath   string
+	UploadTime int64
+}
 
 func generateInitialAdminPassword(length int) (string, error) {
 	if length <= 0 {
@@ -126,7 +135,7 @@ func ConnectDateBase() {
 	if err != nil {
 		logger.Fatalf("连接sqlite数据库失败: %v", err)
 	}
-	err = Engine.Sync2(new(Users), new(Clients), new(Notes), new(Shell), new(Downloads), new(Listener), new(WebDelivery), new(Socks5), new(Settings), new(Key))
+	err = Engine.Sync2(new(Users), new(Clients), new(Notes), new(Shell), new(Downloads), new(Listener), new(WebDelivery), new(Socks5), new(Settings), new(Key), new(Plugin))
 	if err != nil {
 		logger.Fatalf("初始化数据库失败: %v", err)
 	}
@@ -169,6 +178,20 @@ func ConnectDateBase() {
 			Value: "",
 		}
 		err = InsertData(Engine, defaultSetting)
+		if err != nil {
+			logger.Error(err.Error())
+			os.Exit(0)
+		}
+	}
+
+	var mcpSetting Settings
+	exists, err = Engine.Where("name=?", "mcp_enabled").Get(&mcpSetting)
+	if !exists {
+		defaultMcpSetting := &Settings{
+			Name:  "mcp_enabled",
+			Value: "false",
+		}
+		err = InsertData(Engine, defaultMcpSetting)
 		if err != nil {
 			logger.Error(err.Error())
 			os.Exit(0)
